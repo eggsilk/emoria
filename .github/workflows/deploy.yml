@@ -21,10 +21,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Enable GitHub Pages (Actions source)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - name: Build with Astro
         uses: withastro/action@v3
         # withastro/action installs deps, runs `astro build`, and uploads the
