@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/*
+  EMORIA design tokens (Tailwind v4, CSS-first @theme).
+  Register: warm, credible, storybook. Space-dark entry resolves into a warm-cream world.
+  Color lives in Yubuu, the wheel, and the emotion legend — never in the page chrome.
+*/
+@theme static {
+  /* --- Warm world (matches the accordion home) --- */
+  --color-cream: #fff1e4;        /* primary page background (warm off-white) */
+  --color-cream-deep: #f8e7d3;   /* alt sections, cards */
+  --color-cream-edge: #ecdcc4;   /* hairline borders on cream */
+  --color-ink: #2b2a28;          /* primary text (warm near-black, from logo) */
+  --color-ink-soft: #5c574f;     /* secondary text */
+  --color-ink-faint: #8a8378;    /* captions, meta */
+
+  /* --- Space (entry animation) --- */
+  --color-space: #0b1026;        /* deep space base */
+  --color-space-2: #161c3f;      /* nebula mid */
+  --color-space-3: #2a2f5c;      /* nebula light */
+  --color-star: #f4ebd0;         /* stars / warm points */
+
+  /* --- Brand accent (CTAs, links) — coral, matching the accordion --- */
+  --color-brand: #ff7673;
+  --color-brand-deep: #ec5f5b;
+  --color-brand-soft: #ffb3af;
+
+  /* --- Emotion legend (one color per feeling) — pulled from the wheel + logo --- */
+  --color-joy: #f0b93d;          /* warm gold */
+  --color-sadness: #6f8fc9;      /* blue */
+  --color-anger: #d95f3b;        /* coral-red */
+  --color-fear: #9a8bc6;         /* lavender */
+  --color-calm: #8fb8a6;         /* sage */
+  --color-love: #e5868f;         /* rose */
+  --color-surprise: #e79a52;     /* orange */
+  --color-curiosity: #55a79f;    /* teal */
+  --color-shy: #e6b09b;          /* salmon */
+  --color-pride: #d3a24a;        /* amber */
+  --color-jealousy: #7fa86a;     /* green */
+  --color-excitement: #ec7fa0;   /* pink */
+
+  /* --- Type --- */
+  --font-display: "Fredoka Variable", ui-rounded, system-ui, sans-serif;
+  --font-body: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Radii / shadows (soft, tactile) --- */
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+  --shadow-soft: 0 2px 8px rgba(43, 42, 40, 0.06), 0 12px 32px rgba(43, 42, 40, 0.08);
+  --shadow-lift: 0 4px 14px rgba(43, 42, 40, 0.10), 0 20px 48px rgba(43, 42, 40, 0.12);
+}
+
+/* Base element defaults */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-optical-sizing: auto;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

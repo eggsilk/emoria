@@ -1,0 +1,179 @@
+---
+// First-pass interactive Feeling Wheel.
+// Faithful to the physical game: spin → land on a feeling → walk the round.
+// No scoring, no right/wrong — it is a conversation starter.
+
+const emotions = [
+  { name: 'Joy',        v: 'joy' },
+  { name: 'Calm',       v: 'calm' },
+  { name: 'Sadness',    v: 'sadness' },
+  { name: 'Fear',       v: 'fear' },
+  { name: 'Curiosity',  v: 'curiosity' },
+  { name: 'Surprise',   v: 'surprise' },
+  { name: 'Love',       v: 'love' },
+  { name: 'Excitement', v: 'excitement' },
+  { name: 'Pride',      v: 'pride' },
+  { name: 'Jealousy',   v: 'jealousy' },
+  { name: 'Shyness',    v: 'shy' },
+  { name: 'Anger',      v: 'anger' },
+];
+
+const R = 150;
+const N = emotions.length;
+const seg = 360 / N;
+const toXY = (deg: number, r: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return [r * Math.cos(rad), r * Math.sin(rad)];
+};
+const slices = emotions.map((e, i) => {
+  const a0 = i * seg;
+  const a1 = a0 + seg;
+  const [x0, y0] = toXY(a0, R);
+  const [x1, y1] = toXY(a1, R);
+  const [lx, ly] = toXY(a0 + seg / 2, R * 0.66);
+  const path = `M 0 0 L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z`;
+  return { ...e, path, lx, ly, mid: a0 + seg / 2, rot: a0 + seg / 2 };
+});
+---
+
+<div class="demo" data-demo>
+  <div class="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <!-- Wheel -->
+    <div class="relative mx-auto w-full max-w-[380px]">
+      <!-- pointer -->
+      <div class="pointer-arrow absolute left-1/2 top-[-6px] z-10 -translate-x-1/2"></div>
+      <svg viewBox="-170 -170 340 340" class="w-full drop-shadow-[0_10px_30px_rgba(43,42,40,0.15)]" role="img" aria-label="Feeling wheel">
+        <g data-wheel style="transform-origin:center">
+          <circle cx="0" cy="0" r="162" fill="#efe4d2" />
+          {slices.map((s) => (
+            <g>
+              <path d={s.path} fill={`var(--color-${s.v})`} stroke="#f8f2e7" stroke-width="2" />
+              <text
+                x={s.lx} y={s.ly}
+                transform={`rotate(${s.rot} ${s.lx} ${s.ly})`}
+                text-anchor="middle" dominant-baseline="middle"
+                font-family="Fredoka Variable, sans-serif" font-size="12.5" font-weight="600"
+                fill="#2b2a28" opacity="0.9"
+              >{s.name}</text>
+            </g>
+          ))}
+          <circle cx="0" cy="0" r="26" fill="#f8f2e7" stroke="#e4d7c0" stroke-width="2" />
+        </g>
+      </svg>
+      <button data-spin class="mt-6 w-full rounded-[var(--radius-pill)] bg-[var(--color-brand)] px-6 py-3 font-[var(--font-body)] font-semibold text-white shadow-[var(--shadow-soft)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60">
+        Spin the wheel
+      </button>
+    </div>
+
+    <!-- Round walkthrough -->
+    <div class="min-h-[320px]">
+      <!-- idle -->
+      <div data-panel="idle">
+        <p class="text-sm font-medium uppercase tracking-[0.16em] text-[var(--color-ink-faint)]">Try it yourself</p>
+        <h3 class="mt-2 text-2xl">A round takes about a minute.</h3>
+        <p class="mt-3 text-[var(--color-ink-soft)]">
+          Give the wheel a spin. Whatever feeling it lands on, that becomes yours for the
+          round — the same way a child would take a magnetic face from the wooden wheel.
+          There is no right or wrong answer here; every feeling is a good place to start.
+        </p>
+      </div>
+
+      <!-- result -->
+      <div data-panel="result" hidden>
+        <p class="text-sm font-medium uppercase tracking-[0.16em] text-[var(--color-ink-faint)]">Your feeling today</p>
+        <div class="mt-3 flex items-center gap-3">
+          <span data-dot class="h-8 w-8 rounded-full ring-4 ring-white"></span>
+          <span data-feeling class="font-[var(--font-display)] text-4xl font-semibold"></span>
+        </div>
+
+        <ol class="mt-6 space-y-4">
+          <li class="flex gap-3">
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream-deep)] text-xs font-semibold">1</span>
+            <p class="text-[var(--color-ink-soft)]"><span class="font-medium text-[var(--color-ink)]">Talk about it.</span> <span data-q></span></p>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream-deep)] text-xs font-semibold">2</span>
+            <p class="text-[var(--color-ink-soft)]"><span class="font-medium text-[var(--color-ink)]">Find the situation.</span> Does your feeling fit what Yubuu is going through on a card? Maybe — maybe not. Two children can feel differently about the same moment.</p>
+          </li>
+          <li class="flex gap-3">
+            <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--color-cream-deep)] text-xs font-semibold">3</span>
+            <p class="text-[var(--color-ink-soft)]"><span class="font-medium text-[var(--color-ink)]">Name what you need.</span> Every feeling points to a need — a hug, some quiet, to be heard, to go outside.</p>
+          </li>
+        </ol>
+
+        <button data-again class="mt-7 rounded-[var(--radius-pill)] border border-[var(--color-cream-edge)] px-5 py-2.5 font-[var(--font-body)] font-medium transition hover:bg-[var(--color-cream-deep)]">
+          Spin again
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ emotions, seg }}>
+  (() => {
+    const root = document.querySelector('[data-demo]');
+    if (!root) return;
+    const wheel = root.querySelector('[data-wheel]');
+    const spinBtn = root.querySelector('[data-spin]');
+    const againBtn = root.querySelector('[data-again]');
+    const idle = root.querySelector('[data-panel="idle"]');
+    const result = root.querySelector('[data-panel="result"]');
+    const dot = root.querySelector('[data-dot]');
+    const feeling = root.querySelector('[data-feeling]');
+    const qEl = root.querySelector('[data-q]');
+
+    const questions = {
+      default: 'When did you last feel this way? What helped?',
+      Joy: 'What is something small that made you feel this way today?',
+      Sadness: 'Who do you like to be near when you feel like this?',
+      Anger: 'Where do you feel this in your body when it comes?',
+      Fear: 'What makes it feel a little bit smaller?',
+      Love: 'Who is someone you feel this for?',
+      Calm: 'What helps you find this feeling again?',
+    };
+
+    const DURATION = 3400;
+    let rotation = 0;
+    let spinning = false;
+
+    function spin() {
+      if (spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      const i = Math.floor(Math.random() * emotions.length);
+      const mid = i * seg + seg / 2;         // segment centre angle
+      const spins = 4 + Math.floor(Math.random() * 3);
+      // bring segment centre to the top pointer (270deg in svg y-down space)
+      const base = ((rotation % 360) + 360) % 360;
+      const target = 270 - mid;
+      rotation = rotation - base + target + spins * 360;
+      wheel.style.transition = `transform ${DURATION}ms cubic-bezier(0.17, 0.67, 0.16, 1)`;
+      wheel.style.transform = `rotate(${rotation}deg)`;
+
+      // Drive the reveal off a timer — transitionend is unreliable for SVG <g> transforms.
+      window.setTimeout(() => {
+        const e = emotions[i];
+        feeling.textContent = e.name;
+        dot.style.background = `var(--color-${e.v})`;
+        qEl.textContent = questions[e.name] || questions.default;
+        idle.hidden = true;
+        result.hidden = false;
+        spinning = false;
+        spinBtn.disabled = false;
+      }, DURATION + 60);
+    }
+
+    spinBtn.addEventListener('click', spin);
+    againBtn.addEventListener('click', spin);
+  })();
+</script>
+
+<style>
+  .pointer-arrow {
+    width: 0; height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 18px solid var(--color-ink);
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+  }
+</style>

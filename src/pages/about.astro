@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL; // e.g. "/emoria/"
+
+const grounding = [
+  { t: 'Ten years in the room', d: 'Integration daycare centres, residential youth care, intensive-support groups, special-needs and welcome schools, and family counselling — with a particular focus on families with and without a refugee or migration background.' },
+  { t: 'A deliberate path', d: 'Years first with children aged two to seven in early-years education, then into youth work and youth welfare — which sharpened one conviction: the earlier children learn to notice and express feelings, the more stably they develop.' },
+  { t: 'Grounded in the research', d: 'The method draws on developmental psychology, Vygotsky, Goleman’s emotional intelligence, and current Social-Emotional Learning research — so it holds up for professional educational settings.' },
+];
+---
+
+<Base title="About Cemil — EMORIA" current="About"
+  description="EMORIA was built by Cemil Can Özkaya, a Berlin social pedagogue, over ten years of working with children and families.">
+  <article class="bg-[var(--color-cream)]">
+    <div class="mx-auto max-w-3xl px-6 pb-14 pt-36 text-center">
+      <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand)]">✦ About</p>
+      <h1 class="mt-3 text-4xl sm:text-6xl">Cemil Can Özkaya</h1>
+      <p class="mt-4 text-xl text-[var(--color-ink-soft)]">
+        State-recognised social pedagogue and educator · Berlin
+      </p>
+    </div>
+
+    <div class="mx-auto max-w-2xl space-y-6 px-6 pb-16 text-lg text-[var(--color-ink-soft)]">
+      <p>
+        EMORIA didn’t start as a product. It started as a question I couldn’t put down
+        after years of working with children, young people and families: <span class="italic">how can children
+        be supported, early on, to understand their feelings, express them, and talk about
+        them with others?</span>
+      </p>
+      <p>
+        Again and again I saw the same thing — many conflicts, misunderstandings and
+        struggles came down to one ability: being able to express a feeling, a need, a
+        boundary. And I saw how rarely children get a safe place to practise it. Many
+        families simply don’t have the tools to talk with their children about feelings —
+        not for lack of love, but for lack of support.
+      </p>
+      <p>
+        So instead of working through the same cycle with one child at a time, I set out to
+        build something with broader reach — a method parents, educators and therapists
+        could all draw on. EMORIA is the result of that practice, and of a deep conviction
+        that emotional literacy is one of the most important foundations a child can have.
+      </p>
+    </div>
+
+    <div class="bg-[var(--color-cream-deep)]">
+      <div class="mx-auto max-w-4xl px-6 py-20">
+        <div class="grid gap-6 md:grid-cols-3">
+          {grounding.map((g) => (
+            <div class="rounded-[var(--radius-card)] bg-white/60 p-6">
+              <h3 class="text-xl">{g.t}</h3>
+              <p class="mt-2 text-sm text-[var(--color-ink-soft)]">{g.d}</p>
+            </div>
+          ))}
+        </div>
+        <p class="mx-auto mt-10 max-w-2xl text-center text-[var(--color-ink-soft)]">
+          Cemil speaks four languages, plays seven instruments, and has built deep trust with
+          children, families and colleagues across every setting he’s worked in. That
+          practice is the foundation EMORIA is built on.
+        </p>
+      </div>
+    </div>
+
+    <div class="mx-auto max-w-3xl px-6 py-20 text-center">
+      <img src={`${base}img/yubuu-cutout.png`} alt="Yubuu" class="mx-auto mb-4 h-28 w-auto drop-shadow-[0_14px_20px_rgba(43,42,40,0.16)]" />
+      <h2 class="text-3xl">Bring EMORIA to your Kita</h2>
+      <p class="mx-auto mt-4 max-w-lg text-[var(--color-ink-soft)]">
+        If your kindergarten or practice would like to be among the first to try EMORIA,
+        Cemil would be glad to talk.
+      </p>
+      <a href={`${base}contact`} class="mt-7 inline-block rounded-[var(--radius-pill)] bg-[var(--color-brand)] px-8 py-3.5 font-[var(--font-body)] font-semibold text-white shadow-[var(--shadow-soft)] transition hover:bg-[var(--color-brand-deep)]">
+        Get in touch
+      </a>
+    </div>
+  </article>
+</Base>

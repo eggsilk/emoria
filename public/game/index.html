@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Yubuu's Feeling Wheel — play a round</title>
+<style>
+  /* ---- Self-hosted fonts (GDPR-safe, no CDN) ---- */
+  @font-face {
+    font-family: "Fredoka Variable";
+    src: url("assets/fonts/fredoka-latin-wght-normal.woff2") format("woff2");
+    font-weight: 300 700; font-display: swap; font-style: normal;
+  }
+  @font-face {
+    font-family: "Rubik Variable";
+    src: url("assets/fonts/rubik-latin-wght-normal.woff2") format("woff2");
+    font-weight: 300 700; font-display: swap; font-style: normal;
+  }
+
+  :root {
+    --cream: #f8f2e7;
+    --cream-deep: #efe4d2;
+    --cream-edge: #e4d7c0;
+    --ink: #2b2a28;
+    --ink-soft: #5c574f;
+    --ink-faint: #8a8378;
+    --brand: #4f9a94;
+    --brand-deep: #3d7d78;
+    --wood-l: #c39a6b;
+    --wood-d: #9c6f44;
+    --wood-edge: #7c5836;
+    --radius-card: 1.25rem;
+    --radius-pill: 999px;
+    --shadow-soft: 0 2px 8px rgba(43,42,40,.06), 0 12px 32px rgba(43,42,40,.08);
+    --shadow-lift: 0 4px 14px rgba(43,42,40,.10), 0 20px 48px rgba(43,42,40,.12);
+    --font-display: "Fredoka Variable", ui-rounded, system-ui, sans-serif;
+    --font-body: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex; justify-content: center; padding: clamp(12px, 3vw, 40px);
+  }
+  h1,h2,h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.12; letter-spacing: -.005em; margin: 0; }
+
+  .stage {
+    width: 100%; max-width: 940px; background: var(--cream-deep);
+    border: 1px solid var(--cream-edge); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft); padding: clamp(16px, 3vw, 34px);
+    display: flex; flex-direction: column; gap: 18px;
+  }
+
+  /* ---- top bar ---- */
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  .steps { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .steps li {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--cream-edge);
+    transition: background .3s, transform .3s;
+  }
+  .steps li.done { background: var(--brand-soft, #8fbfba); }
+  .steps li.now { background: var(--brand); transform: scale(1.35); }
+
+  /* ---- panels ---- */
+  .main { position: relative; min-height: 360px; display: flex; }
+  .panel { display: none; width: 100%; animation: rise .45s ease both; }
+  .panel.active { display: block; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .lead { font-size: .8rem; text-transform: uppercase; letter-spacing: .16em; color: var(--ink-faint); font-weight: 600; }
+  h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); margin-top: .35rem; }
+  h3 { font-size: 1.15rem; }
+  p.body { color: var(--ink-soft); max-width: 54ch; }
+
+  /* ---- buttons ---- */
+  .btn {
+    font-family: var(--font-body); font-weight: 600; font-size: 1rem; cursor: pointer;
+    border: none; border-radius: var(--radius-pill); padding: 13px 26px;
+    background: var(--brand); color: #fff; box-shadow: var(--shadow-soft);
+    transition: background .2s, transform .1s, box-shadow .2s;
+  }
+  .btn:hover { background: var(--brand-deep); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .55; cursor: default; }
+  .btn.ghost {
+    background: transparent; color: var(--ink); box-shadow: none;
+    border: 1.5px solid var(--cream-edge); font-weight: 500;
+  }
+  .btn.ghost:hover { background: var(--cream); }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+
+  /* ---- intro ---- */
+  .intro-wrap { display: grid; grid-template-columns: 150px 1fr; gap: 26px; align-items: center; }
+  .intro-wrap img { width: 100%; filter: drop-shadow(0 10px 20px rgba(43,42,40,.14)); }
+
+  /* ---- spin / wheel ---- */
+  .spin-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 30px; align-items: center; }
+  .wheel-hold { position: relative; width: 100%; max-width: 380px; margin: 0 auto; }
+  .pointer {
+    position: absolute; top: -4px; left: 50%; transform: translateX(-50%); z-index: 3;
+    width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent;
+    border-top: 20px solid var(--ink); filter: drop-shadow(0 2px 2px rgba(0,0,0,.18));
+  }
+  svg.wheel { width: 100%; display: block; }
+  svg.wheel g.rot { transform-origin: center; transform-box: fill-box; }
+  .wheel-dim { transition: opacity .5s, filter .5s; }
+  .is-dim { opacity: .5; filter: saturate(.7); }
+
+  .result { display: none; }
+  .result.show { display: block; animation: rise .5s ease both; }
+  .feeling-badge { display: flex; align-items: center; gap: 16px; }
+  .feeling-badge .head {
+    width: 92px; height: 92px; border-radius: 50%; object-fit: cover;
+    box-shadow: 0 0 0 4px #fff, 0 8px 20px rgba(43,42,40,.18);
+  }
+  .feeling-name { font-family: var(--font-display); font-size: 2rem; font-weight: 600; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--ink-soft); margin-top: 4px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: 0 0 0 3px #fff; }
+
+  /* ---- generic card ---- */
+  .card {
+    background: var(--cream); border: 1px solid var(--cream-edge); border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft); overflow: hidden;
+  }
+  .card-head { padding: 16px 20px; font-family: var(--font-display); font-weight: 600; font-size: 1.15rem; border-bottom: 1px solid var(--cream-edge); }
+
+  /* ---- question card (draw + flip) ---- */
+  .q-stage { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .flip { perspective: 1200px; width: min(320px, 80vw); height: 210px; cursor: pointer; }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .7s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
+  .flip.flipped .flip-inner { transform: rotateY(180deg); }
+  .flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden; border-radius: var(--radius-card);
+    display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px;
+    box-shadow: var(--shadow-soft);
+  }
+  .flip-back { background: linear-gradient(150deg, #57a49d, #3d7d78); color: #fff; }
+  .flip-back .qmark { font-family: var(--font-display); font-size: 3rem; opacity: .9; }
+  .flip-back small { position: absolute; bottom: 16px; left: 0; right: 0; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; opacity: .8; }
+  .flip-front { background: var(--cream); border: 1px solid var(--cream-edge); transform: rotateY(180deg); }
+  .flip-front p { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink); }
+  .hint { color: var(--ink-faint); font-size: .9rem; }
+
+  /* ---- flash card ---- */
+  .flash-card { max-width: 460px; margin: 0 auto; text-align: center; padding: 30px 26px; }
+  .flash-emoji { font-size: 3.4rem; line-height: 1; }
+  .flash-text { font-family: var(--font-display); font-size: 1.4rem; margin-top: 14px; }
+  .two-btn { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+
+  /* ---- situation card ---- */
+  .sit-wrap { max-width: 420px; margin: 0 auto; }
+  .sit-img-hold { position: relative; line-height: 0; }
+  .sit-img-hold img.scene { width: 100%; display: block; }
+  .face-slot {
+    position: absolute; transform: translate(-50%,-50%); border-radius: 50%;
+    display: grid; place-items: center;
+  }
+  .face-slot .ring {
+    position: absolute; inset: 0; border-radius: 50%; border: 2.5px dashed rgba(43,42,40,.35);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: .4; } 50% { opacity: .9; } }
+  .face-slot img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; opacity: 0; transform: scale(.4); }
+  .face-slot.filled img { opacity: 1; transform: scale(1); transition: opacity .35s, transform .45s cubic-bezier(.2,1.4,.4,1); }
+  .face-slot.filled .ring { display: none; }
+  .place-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; justify-content: center; }
+  .token {
+    width: 66px; height: 66px; border-radius: 50%; object-fit: cover; cursor: pointer;
+    box-shadow: 0 0 0 4px #fff, var(--shadow-soft); transition: transform .15s;
+    animation: bob 2s ease-in-out infinite;
+  }
+  .token:hover { transform: scale(1.06); }
+  @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+  /* ---- needs grid ---- */
+  .needs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 4px; }
+  .need {
+    border: none; background: transparent; cursor: pointer; padding: 6px; border-radius: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; transition: transform .15s, background .2s, opacity .3s;
+  }
+  .need img { width: 100%; border-radius: 50%; box-shadow: var(--shadow-soft); }
+  .need span { font-size: .82rem; color: var(--ink-soft); text-align: center; line-height: 1.25; }
+  .need:hover { transform: translateY(-3px); }
+  .needs-grid.chosen .need:not(.sel) { opacity: .4; }
+  .need.sel { background: var(--cream); box-shadow: var(--shadow-soft); }
+  .need.sel span { color: var(--ink); font-weight: 600; }
+
+  /* ---- close ---- */
+  .adult-note { margin-top: 18px; padding: 16px 18px; background: var(--cream); border: 1px solid var(--cream-edge); border-radius: 14px; color: var(--ink-soft); font-size: .95rem; }
+
+  /* ---- narration (persistent Yubuu) ---- */
+  .narration { display: flex; align-items: flex-end; gap: 14px; border-top: 1px solid var(--cream-edge); padding-top: 16px; }
+  .narration img { width: 62px; flex: none; filter: drop-shadow(0 6px 12px rgba(43,42,40,.15)); }
+  .bubble {
+    position: relative; background: var(--cream); border: 1px solid var(--cream-edge);
+    border-radius: 16px; padding: 12px 16px; color: var(--ink-soft); font-size: .96rem; max-width: 62ch;
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -8px; bottom: 16px; width: 14px; height: 14px;
+    background: var(--cream); border-left: 1px solid var(--cream-edge); border-bottom: 1px solid var(--cream-edge);
+    transform: rotate(45deg);
+  }
+
+  @media (max-width: 640px) {
+    .intro-wrap { grid-template-columns: 100px 1fr; gap: 16px; }
+    .spin-grid { grid-template-columns: 1fr; }
+    .needs-grid { grid-template-columns: repeat(3, 1fr); }
+    .main { min-height: 0; }
+    .feeling-name { font-size: 1.6rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+  <main class="stage" aria-live="polite">
+    <div class="topbar">
+      <span class="brand">Yubuu's Feeling Wheel · one round</span>
+      <ol class="steps" id="steps" aria-hidden="true">
+        <li></li><li></li><li></li><li></li><li></li>
+      </ol>
+    </div>
+
+    <div class="main" id="main">
+      <!-- INTRO -->
+      <section class="panel active" data-step="intro">
+        <div class="intro-wrap">
+          <img src="assets/yubuu-guide.png" alt="Yubuu, a small green space traveller" />
+          <div>
+            <p class="lead">Meet Yubuu</p>
+            <h2>Will you help me understand feelings?</h2>
+            <p class="body">I travel the galaxy visiting planets where creatures feel all sorts of things I don't understand yet. I'm not a teacher — just curious. Play one round with me and show me how a feeling works.</p>
+            <div class="btn-row"><button class="btn" data-go="spin">Let's play</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SPIN -->
+      <section class="panel" data-step="spin">
+        <div class="spin-grid">
+          <div class="wheel-hold">
+            <div class="pointer"></div>
+            <svg class="wheel" viewBox="-170 -170 340 340" role="img" aria-label="A wheel of twelve feeling faces">
+              <g class="rot" id="rot"></g>
+            </svg>
+          </div>
+          <div>
+            <div id="spinIntro">
+              <p class="lead">Step 1 — the wheel</p>
+              <h2>Give the wheel a spin.</h2>
+              <p class="body">Whatever feeling it lands on becomes yours for the round — just like taking a magnetic face from the wooden wheel. There is no right or wrong one to get.</p>
+              <div class="btn-row"><button class="btn" id="spinBtn">Spin the wheel</button></div>
+            </div>
+            <div class="result" id="result">
+              <p class="lead">Your feeling today</p>
+              <div class="feeling-badge">
+                <img class="head" id="rHead" alt="" />
+                <div>
+                  <div class="feeling-name" id="rName"></div>
+                  <span class="chip"><span class="dot" id="rDot"></span> Do you already know this feeling?</span>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" data-go="question">Yes, this is my feeling</button>
+                <button class="btn ghost" id="respin">I'd rather spin again</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUESTION -->
+      <section class="panel" data-step="question">
+        <p class="lead">Step 2 — a question</p>
+        <h2>Draw a question card.</h2>
+        <div class="q-stage">
+          <div class="flip" id="flip" role="button" tabindex="0" aria-label="Draw a question card">
+            <div class="flip-inner">
+              <div class="flip-face flip-back"><span class="qmark">?</span><small>tap to draw</small></div>
+              <div class="flip-face flip-front"><p id="qText"></p></div>
+            </div>
+          </div>
+          <p class="hint" id="qHint">Tap the card.</p>
+        </div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" data-go="flash" id="qNext" disabled>Next</button>
+        </div>
+      </section>
+
+      <!-- FLASH -->
+      <section class="panel" data-step="flash">
+        <p class="lead">Step 3 — a moment</p>
+        <h2>Does your feeling fit this?</h2>
+        <div class="card flash-card">
+          <div class="flash-emoji" id="fEmoji"></div>
+          <div class="flash-text" id="fText"></div>
+          <div class="two-btn" id="fBtns">
+            <button class="btn" data-fit="yes">Yes, it fits</button>
+            <button class="btn ghost" data-fit="no">For me it's different</button>
+          </div>
+          <p class="body" id="fResp" style="margin:16px auto 0; display:none"></p>
+        </div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" data-go="situation" id="fNext" disabled>Next</button>
+        </div>
+      </section>
+
+      <!-- SITUATION -->
+      <section class="panel" data-step="situation">
+        <p class="lead">Step 4 — give Yubuu a face</p>
+        <h2 id="sitTitle"></h2>
+        <div class="sit-wrap">
+          <div class="card">
+            <div class="sit-img-hold">
+              <img class="scene" id="sitImg" alt="An everyday moment, with Yubuu not yet showing a face" />
+              <div class="face-slot" id="faceSlot"><div class="ring"></div><img id="faceHead" alt="" /></div>
+            </div>
+          </div>
+          <div class="place-row" id="placeRow">
+            <span class="hint">Your feeling:</span>
+            <img class="token" id="sitToken" alt="Tap to give Yubuu your feeling" title="Tap to place" />
+          </div>
+        </div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" data-go="needs" id="sNext" disabled>Next</button>
+        </div>
+      </section>
+
+      <!-- NEEDS -->
+      <section class="panel" data-step="needs">
+        <p class="lead">Step 5 — what you need</p>
+        <h2>What would help you right now?</h2>
+        <div class="needs-grid" id="needsGrid"></div>
+        <div class="btn-row" style="justify-content:center">
+          <button class="btn" data-go="close" id="nNext" disabled>Finish the round</button>
+        </div>
+      </section>
+
+      <!-- CLOSE -->
+      <section class="panel" data-step="close">
+        <p class="lead">That's one round</p>
+        <h2>A feeling, named — and what it needs.</h2>
+        <p class="body">You spun a feeling, sat with it, saw that others might feel differently about the same moment, and found what it needs. Nothing was scored. Nothing was wrong.</p>
+        <div class="adult-note">
+          In a Kita, a pedagogue guides this round with two to four children at once — spinning, drawing, and placing in turn. The wheel doesn't teach the "right" feeling. It gives children the words for what they already carry, and a calm place to say it out loud.
+        </div>
+        <div class="btn-row"><button class="btn" data-go="spin" id="again">Play another round</button></div>
+      </section>
+    </div>
+
+    <div class="narration">
+      <img src="assets/yubuu-guide.png" alt="" aria-hidden="true" />
+      <div class="bubble" id="say"></div>
+    </div>
+  </main>
+
+<script>
+(() => {
+  "use strict";
+
+  // face <-> name pairing is PROVISIONAL placeholder art; Cemil confirms the
+  // canonical 12 later. Order matches the site's DemoWheel + emotion legend.
+  const EMOTIONS = [
+    { name: "Joy",        head: "head-08", color: "#f0b93d" },
+    { name: "Calm",       head: "head-05", color: "#8fb8a6" },
+    { name: "Sadness",    head: "head-03", color: "#6f8fc9" },
+    { name: "Fear",       head: "head-04", color: "#9a8bc6" },
+    { name: "Curiosity",  head: "head-09", color: "#55a79f" },
+    { name: "Surprise",   head: "head-02", color: "#e79a52" },
+    { name: "Love",       head: "head-12", color: "#e5868f" },
+    { name: "Excitement", head: "head-06", color: "#ec7fa0" },
+    { name: "Pride",      head: "head-07", color: "#d3a24a" },
+    { name: "Jealousy",   head: "head-11", color: "#7fa86a" },
+    { name: "Shyness",    head: "head-10", color: "#e6b09b" },
+    { name: "Anger",      head: "head-01", color: "#d95f3b" },
+  ];
+  const headSrc = (h) => `assets/heads/${h}.png`;
+
+  const QUESTIONS = [
+    "When did you last feel this way?",
+    "What helps you when you feel like this?",
+    "Where do you notice this feeling in your body?",
+    "If this feeling had a colour, which one would it be?",
+    "Is this feeling a friend, or not so much?",
+    "Who do you like to be near when you feel this way?",
+  ];
+
+  const FLASH = [
+    { emoji: "⛈️", text: "When it thunders and lightning flashes outside…" },
+    { emoji: "🎈", text: "When it's my turn in front of everyone…" },
+    { emoji: "🎁", text: "When someone hands me a surprise…" },
+    { emoji: "🌙", text: "When the lights go out at bedtime…" },
+  ];
+
+  // face target = fraction of the cropped scene (x & diameter of width, y of height)
+  const SITUATIONS = [
+    { img: "sit-1", title: "Your ice cream falls on the ground.",         fx: .45,  fy: .285, fd: .17 },
+    { img: "sit-2", title: "You make a mistake, and others laugh.",        fx: .275, fy: .30,  fd: .19 },
+    { img: "sit-3", title: "You do something for the first time, alone.",  fx: .705, fy: .42,  fd: .18 },
+    { img: "sit-4", title: "You share something with someone.",           fx: .29,  fy: .45,  fd: .18 },
+  ];
+
+  const NEEDS = [
+    "A hug", "Someone listens to me", "Quiet", "Sleep",
+    "Being alone", "To move", "A walk", "Being outside",
+    "To talk", "To paint", "Music", "Being allowed to cry",
+  ];
+
+  const SAY = {
+    intro:     "Hello! I'm so glad you're here.",
+    spin:      "Round and round… let's see which feeling we discover today.",
+    result:    "That one is yours now. If it doesn't feel right, you can always spin again — you choose.",
+    question:  "There's nothing to write down. Say it out loud, or just think it. I'm listening either way.",
+    flash:     "Some children would say yes, some would say no. Both are right — that's the whole secret.",
+    situation: "If your feeling fits this moment, give it to me. I don't have a face until you do.",
+    needs:     "Every feeling is pointing at something you need. It's okay if others need the same thing.",
+    close:     "Thank you for teaching me. Shall we go around once more?",
+  };
+
+  const ORDER = ["intro", "spin", "question", "flash", "situation", "needs", "close"];
+  const STEP_INDEX = { spin: 0, question: 1, flash: 2, situation: 3, needs: 4 };
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const rand = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+  const panels = {};
+  $$(".panel").forEach((p) => (panels[p.dataset.step] = p));
+  const say = $("#say");
+  const stepDots = $$("#steps li");
+
+  let chosen = null; // chosen emotion for the round
+
+  function go(step) {
+    Object.values(panels).forEach((p) => p.classList.remove("active"));
+    panels[step].classList.add("active");
+    say.textContent = SAY[step] || "";
+    const idx = STEP_INDEX[step];
+    stepDots.forEach((d, i) => {
+      d.classList.toggle("now", i === idx);
+      d.classList.toggle("done", idx != null && i < idx);
+    });
+    if (step === "spin") resetSpin();
+    if (step === "question") setupQuestion();
+    if (step === "flash") setupFlash();
+    if (step === "situation") setupSituation();
+    if (step === "needs") setupNeeds();
+  }
+
+  // generic [data-go] wiring
+  $$("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+
+  // ---------------- WHEEL ----------------
+  const SEG = 30, R = 150, R_DISC = 104, RD = 30;
+  const NS = "http://www.w3.org/2000/svg";
+  const rot = $("#rot");
+  const toXY = (deg, r) => [r * Math.cos((deg * Math.PI) / 180), r * Math.sin((deg * Math.PI) / 180)];
+
+  function buildWheel() {
+    let inner = `<circle cx="0" cy="0" r="${R + 8}" fill="${css('--wood-edge')}" />`;
+    for (let i = 0; i < 12; i++) {
+      const a0 = i * SEG, a1 = a0 + SEG;
+      const [x0, y0] = toXY(a0, R), [x1, y1] = toXY(a1, R);
+      const fill = i % 2 === 0 ? css("--wood-l") : css("--wood-d");
+      inner += `<path d="M 0 0 L ${x0.toFixed(2)} ${y0.toFixed(2)} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)} Z" fill="${fill}" stroke="${css('--wood-edge')}" stroke-width="1.5"/>`;
+    }
+    // face discs at segment centres
+    for (let i = 0; i < 12; i++) {
+      const m = i * SEG + SEG / 2;
+      const [dx, dy] = toXY(m, R_DISC);
+      const cid = `clip${i}`;
+      inner += `<clipPath id="${cid}"><circle cx="${dx.toFixed(2)}" cy="${dy.toFixed(2)}" r="${RD}"/></clipPath>`;
+      inner += `<circle cx="${dx.toFixed(2)}" cy="${dy.toFixed(2)}" r="${RD + 2}" fill="#fff"/>`;
+      inner += `<image href="${headSrc(EMOTIONS[i].head)}" x="${(dx - RD).toFixed(2)}" y="${(dy - RD).toFixed(2)}" width="${RD * 2}" height="${RD * 2}" clip-path="url(#${cid})" preserveAspectRatio="xMidYMid slice"/>`;
+      inner += `<circle cx="${dx.toFixed(2)}" cy="${dy.toFixed(2)}" r="${RD}" fill="none" stroke="#fff" stroke-width="2"/>`;
+    }
+    // hub
+    inner += `<circle cx="0" cy="0" r="24" fill="#f4ecdb" stroke="${css('--wood-edge')}" stroke-width="2"/>`;
+    inner += `<circle cx="0" cy="0" r="10" fill="url(#hub)"/>`;
+    inner += `<radialGradient id="hub"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#c9b79a"/></radialGradient>`;
+    rot.innerHTML = inner;
+  }
+  function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  let rotation = 0, spinning = false;
+  const svgWheel = $("svg.wheel");
+  const spinBtn = $("#spinBtn");
+  const spinIntro = $("#spinIntro");
+  const result = $("#result");
+
+  function resetSpin() {
+    result.classList.remove("show");
+    spinIntro.style.display = "";
+    spinBtn.disabled = false;
+    svgWheel.classList.remove("is-dim");
+  }
+
+  function spin() {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.disabled = true;
+    $("#respin").disabled = true;
+    const i = Math.floor(Math.random() * 12);
+    const mid = i * SEG + SEG / 2;
+    const base = ((rotation % 360) + 360) % 360;
+    const target = 270 - mid;
+    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches ? 400 : 3600;
+    rotation = rotation - base + target + (4 + Math.floor(Math.random() * 3)) * 360;
+    rot.style.transition = `transform ${dur}ms cubic-bezier(.17,.67,.16,1)`;
+    rot.style.transform = `rotate(${rotation}deg)`;
+    // reveal off a timer — transitionend is unreliable for SVG transforms
+    setTimeout(() => {
+      chosen = EMOTIONS[i];
+      $("#rHead").src = headSrc(chosen.head);
+      $("#rName").textContent = chosen.name;
+      $("#rDot").style.background = chosen.color;
+      spinIntro.style.display = "none";
+      svgWheel.classList.add("is-dim");
+      result.classList.add("show");
+      say.textContent = SAY.result;
+      spinning = false;
+      $("#respin").disabled = false;
+    }, dur + 80);
+  }
+  spinBtn.addEventListener("click", spin);
+  $("#respin").addEventListener("click", () => { resetSpin(); spin(); });
+
+  // ---------------- QUESTION ----------------
+  const flip = $("#flip");
+  function setupQuestion() {
+    flip.classList.remove("flipped");
+    $("#qText").textContent = rand(QUESTIONS);
+    $("#qHint").textContent = "Tap the card.";
+    $("#qNext").disabled = true;
+  }
+  function drawQuestion() {
+    if (flip.classList.contains("flipped")) return;
+    flip.classList.add("flipped");
+    $("#qHint").textContent = "There's no wrong answer. When you're ready, go on.";
+    $("#qNext").disabled = false;
+  }
+  flip.addEventListener("click", drawQuestion);
+  flip.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); drawQuestion(); } });
+
+  // ---------------- FLASH ----------------
+  function setupFlash() {
+    const f = rand(FLASH);
+    $("#fEmoji").textContent = f.emoji;
+    $("#fText").textContent = f.text;
+    $("#fResp").style.display = "none";
+    $("#fNext").disabled = true;
+    $$("#fBtns .btn").forEach((b) => (b.disabled = false));
+  }
+  $$("#fBtns .btn").forEach((b) =>
+    b.addEventListener("click", () => {
+      const yes = b.dataset.fit === "yes";
+      $("#fResp").textContent = yes
+        ? "Good. And if a friend felt the opposite about the very same moment — that would be right too."
+        : "That's completely okay. The same moment can bring a different feeling to each of us. There's no wrong answer.";
+      $("#fResp").style.display = "block";
+      $$("#fBtns .btn").forEach((x) => (x.disabled = true));
+      $("#fNext").disabled = false;
+    })
+  );
+
+  // ---------------- SITUATION ----------------
+  function setupSituation() {
+    const s = rand(SITUATIONS);
+    $("#sitTitle").textContent = s.title;
+    $("#sitImg").src = `assets/situations/${s.img}.png`;
+    const slot = $("#faceSlot");
+    slot.classList.remove("filled");
+    slot.style.left = s.fx * 100 + "%";
+    slot.style.top = s.fy * 100 + "%";
+    slot.style.width = s.fd * 100 + "%";
+    slot.style.aspectRatio = "1";
+    $("#faceHead").src = headSrc(chosen.head);
+    const tok = $("#sitToken");
+    tok.src = headSrc(chosen.head);
+    $("#placeRow").style.display = "";
+    $("#sNext").disabled = true;
+  }
+  function placeFace() {
+    const slot = $("#faceSlot");
+    if (slot.classList.contains("filled")) return;
+    slot.classList.add("filled");
+    $("#placeRow").style.display = "none";
+    say.textContent = "Now I feel it too. Another child might give me a different face — and that would fit just as well.";
+    $("#sNext").disabled = false;
+  }
+  $("#sitToken").addEventListener("click", placeFace);
+
+  // ---------------- NEEDS ----------------
+  const needsGrid = $("#needsGrid");
+  function setupNeeds() {
+    needsGrid.classList.remove("chosen");
+    needsGrid.innerHTML = NEEDS.map((n, i) =>
+      `<button class="need" data-i="${i}"><img src="assets/needs/need-${String(i + 1).padStart(2, "0")}.png" alt=""><span>${n}</span></button>`
+    ).join("");
+    $("#nNext").disabled = true;
+    $$(".need", needsGrid).forEach((b) =>
+      b.addEventListener("click", () => {
+        $$(".need", needsGrid).forEach((x) => x.classList.remove("sel"));
+        b.classList.add("sel");
+        needsGrid.classList.add("chosen");
+        say.textContent = `"${NEEDS[b.dataset.i]}" — that's a good thing to know about yourself.`;
+        $("#nNext").disabled = false;
+      })
+    );
+  }
+
+  // ---------------- INIT ----------------
+  buildWheel();
+  go("intro");
+})();
+</script>
+</body>
+</html>
