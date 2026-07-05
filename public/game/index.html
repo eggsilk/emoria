@@ -48,33 +48,35 @@
   h1,h2,h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.12; letter-spacing: -.005em; margin: 0; }
 
   .stage {
-    width: 100%; max-width: 940px; background: var(--cream-deep);
+    width: 100%; max-width: 1180px; background: var(--cream-deep);
     border: 1px solid var(--cream-edge); border-radius: var(--radius-card);
-    box-shadow: var(--shadow-soft); padding: clamp(16px, 3vw, 34px);
-    display: flex; flex-direction: column; gap: 18px;
+    box-shadow: var(--shadow-soft); padding: clamp(20px, 3vw, 46px);
+    display: flex; flex-direction: column; gap: 22px;
   }
 
   /* ---- top bar ---- */
   .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
-  .steps { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .steps { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
   .steps li {
-    width: 9px; height: 9px; border-radius: 50%; background: var(--cream-edge);
-    transition: background .3s, transform .3s;
+    width: 10px; height: 10px; box-sizing: content-box; padding: 8px;
+    border-radius: 50%; background-color: var(--cream-edge); background-clip: content-box;
+    cursor: pointer; transition: background-color .3s, transform .2s;
   }
-  .steps li.done { background: var(--brand-soft, #8fbfba); }
-  .steps li.now { background: var(--brand); transform: scale(1.35); }
+  .steps li:hover { background-color: var(--brand-soft, #8fbfba); }
+  .steps li.done { background-color: var(--brand-soft, #8fbfba); }
+  .steps li.now { background-color: var(--brand); transform: scale(1.3); }
 
   /* ---- panels ---- */
-  .main { position: relative; min-height: 360px; display: flex; }
+  .main { position: relative; min-height: 440px; display: flex; align-items: center; }
   .panel { display: none; width: 100%; animation: rise .45s ease both; }
   .panel.active { display: block; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
   .lead { font-size: .8rem; text-transform: uppercase; letter-spacing: .16em; color: var(--ink-faint); font-weight: 600; }
-  h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); margin-top: .35rem; }
-  h3 { font-size: 1.15rem; }
-  p.body { color: var(--ink-soft); max-width: 54ch; }
+  h2 { font-size: clamp(1.7rem, 3.6vw, 2.55rem); margin-top: .35rem; }
+  h3 { font-size: 1.25rem; }
+  p.body { color: var(--ink-soft); max-width: 56ch; font-size: 1.05rem; }
 
   /* ---- buttons ---- */
   .btn {
@@ -91,15 +93,16 @@
     border: 1.5px solid var(--cream-edge); font-weight: 500;
   }
   .btn.ghost:hover { background: var(--cream); }
+  .btn.small { padding: 8px 18px; font-size: .9rem; }
   .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
 
   /* ---- intro ---- */
-  .intro-wrap { display: grid; grid-template-columns: 150px 1fr; gap: 26px; align-items: center; }
+  .intro-wrap { display: grid; grid-template-columns: 210px 1fr; gap: 40px; align-items: center; }
   .intro-wrap img { width: 100%; filter: drop-shadow(0 10px 20px rgba(43,42,40,.14)); }
 
   /* ---- spin / wheel ---- */
-  .spin-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 30px; align-items: center; }
-  .wheel-hold { position: relative; width: 100%; max-width: 380px; margin: 0 auto; }
+  .spin-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 40px; align-items: center; }
+  .wheel-hold { position: relative; width: 100%; max-width: 460px; margin: 0 auto; }
   .pointer {
     position: absolute; top: -4px; left: 50%; transform: translateX(-50%); z-index: 3;
     width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent;
@@ -151,8 +154,17 @@
   .flash-text { font-family: var(--font-display); font-size: 1.4rem; margin-top: 14px; }
   .two-btn { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
 
-  /* ---- situation card ---- */
-  .sit-wrap { max-width: 420px; margin: 0 auto; }
+  /* ---- situation cards (3, drag target) ---- */
+  .sit-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .sit-card {
+    margin: 0; cursor: pointer; outline: 3px dashed transparent; outline-offset: 4px;
+    transition: outline-color .15s, transform .15s, box-shadow .2s;
+  }
+  .sit-card.drop-hover { outline-color: var(--brand); transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+  .sit-card figcaption {
+    font-family: var(--font-body); font-size: .92rem; color: var(--ink-soft);
+    text-align: center; padding: 11px 12px; border-top: 1px solid var(--cream-edge); background: var(--cream);
+  }
   .sit-img-hold { position: relative; line-height: 0; }
   .sit-img-hold img.scene { width: 100%; display: block; }
   .face-slot {
@@ -169,21 +181,23 @@
   .face-slot.filled .ring { display: none; }
   .place-row { display: flex; align-items: center; gap: 14px; margin-top: 18px; justify-content: center; }
   .token {
-    width: 66px; height: 66px; border-radius: 50%; object-fit: cover; cursor: pointer;
+    width: 74px; height: 74px; border-radius: 50%; object-fit: cover; cursor: grab;
     box-shadow: 0 0 0 4px #fff, var(--shadow-soft); transition: transform .15s;
-    animation: bob 2s ease-in-out infinite;
+    animation: bob 2s ease-in-out infinite; touch-action: none; user-select: none; -webkit-user-drag: none;
   }
   .token:hover { transform: scale(1.06); }
+  .token:active { cursor: grabbing; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
   /* ---- needs grid ---- */
-  .needs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 4px; }
+  .needs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 6px; max-width: 880px; }
   .need {
-    border: none; background: transparent; cursor: pointer; padding: 6px; border-radius: 16px;
-    display: flex; flex-direction: column; align-items: center; gap: 6px; transition: transform .15s, background .2s, opacity .3s;
+    border: none; background: transparent; cursor: pointer; padding: 8px; border-radius: 16px;
+    font-family: var(--font-body);
+    display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform .15s, background .2s, opacity .3s;
   }
   .need img { width: 100%; border-radius: 50%; box-shadow: var(--shadow-soft); }
-  .need span { font-size: .82rem; color: var(--ink-soft); text-align: center; line-height: 1.25; }
+  .need span { font-family: var(--font-body); font-size: .95rem; color: var(--ink-soft); text-align: center; line-height: 1.25; }
   .need:hover { transform: translateY(-3px); }
   .needs-grid.chosen .need:not(.sel) { opacity: .4; }
   .need.sel { background: var(--cream); box-shadow: var(--shadow-soft); }
@@ -193,14 +207,14 @@
   .adult-note { margin-top: 18px; padding: 16px 18px; background: var(--cream); border: 1px solid var(--cream-edge); border-radius: 14px; color: var(--ink-soft); font-size: .95rem; }
 
   /* ---- narration (persistent Yubuu) ---- */
-  .narration { display: flex; align-items: flex-end; gap: 14px; border-top: 1px solid var(--cream-edge); padding-top: 16px; }
-  .narration img { width: 62px; flex: none; filter: drop-shadow(0 6px 12px rgba(43,42,40,.15)); }
+  .narration { display: flex; align-items: flex-start; gap: 14px; border-top: 1px solid var(--cream-edge); padding-top: 18px; }
+  .narration img { width: 84px; flex: none; filter: drop-shadow(0 6px 12px rgba(43,42,40,.15)); }
   .bubble {
-    position: relative; background: var(--cream); border: 1px solid var(--cream-edge);
-    border-radius: 16px; padding: 12px 16px; color: var(--ink-soft); font-size: .96rem; max-width: 62ch;
+    position: relative; margin-top: 22px; background: var(--cream); border: 1px solid var(--cream-edge);
+    border-radius: 16px; padding: 13px 17px; color: var(--ink-soft); font-size: 1rem; max-width: 62ch;
   }
   .bubble::before {
-    content: ""; position: absolute; left: -8px; bottom: 16px; width: 14px; height: 14px;
+    content: ""; position: absolute; left: -8px; top: 16px; width: 14px; height: 14px;
     background: var(--cream); border-left: 1px solid var(--cream-edge); border-bottom: 1px solid var(--cream-edge);
     transform: rotate(45deg);
   }
@@ -208,7 +222,8 @@
   @media (max-width: 640px) {
     .intro-wrap { grid-template-columns: 100px 1fr; gap: 16px; }
     .spin-grid { grid-template-columns: 1fr; }
-    .needs-grid { grid-template-columns: repeat(3, 1fr); }
+    .needs-grid { grid-template-columns: repeat(2, 1fr); }
+    .sit-cards { grid-template-columns: 1fr; max-width: 300px; margin: 0 auto; }
     .main { min-height: 0; }
     .feeling-name { font-size: 1.6rem; }
   }
@@ -219,11 +234,11 @@
 </head>
 <body>
   <main class="stage" aria-live="polite">
-    <div class="topbar">
-      <span class="brand">Yubuu's Feeling Wheel · one round</span>
-      <ol class="steps" id="steps" aria-hidden="true">
+    <div class="topbar" id="topbar" style="display:none">
+      <ol class="steps" id="steps" aria-label="Round steps — click to jump">
         <li></li><li></li><li></li><li></li><li></li>
       </ol>
+      <button class="btn ghost small" id="startOver" type="button">Start over</button>
     </div>
 
     <div class="main" id="main">
@@ -313,18 +328,11 @@
       <!-- SITUATION -->
       <section class="panel" data-step="situation">
         <p class="lead">Step 4 — give Yubuu a face</p>
-        <h2 id="sitTitle"></h2>
-        <div class="sit-wrap">
-          <div class="card">
-            <div class="sit-img-hold">
-              <img class="scene" id="sitImg" alt="An everyday moment, with Yubuu not yet showing a face" />
-              <div class="face-slot" id="faceSlot"><div class="ring"></div><img id="faceHead" alt="" /></div>
-            </div>
-          </div>
-          <div class="place-row" id="placeRow">
-            <span class="hint">Your feeling:</span>
-            <img class="token" id="sitToken" alt="Tap to give Yubuu your feeling" title="Tap to place" />
-          </div>
+        <h2>Which moment fits your feeling?</h2>
+        <div class="sit-cards" id="sitCards"></div>
+        <div class="place-row" id="placeRow">
+          <span class="hint">Drag your feeling onto the moment that fits</span>
+          <img class="token" id="sitToken" draggable="false" alt="Drag to give Yubuu your feeling" />
         </div>
         <div class="btn-row" style="justify-content:center">
           <button class="btn" data-go="needs" id="sNext" disabled>Next</button>
@@ -406,9 +414,10 @@
   ];
 
   const NEEDS = [
-    "A hug", "Someone listens to me", "Quiet", "Sleep",
-    "Being alone", "To move", "A walk", "Being outside",
-    "To talk", "To paint", "Music", "Being allowed to cry",
+    { label: "A hug",              img: "need-01" },
+    { label: "Listening to music", img: "need-11" },
+    { label: "Sleep",              img: "need-04" },
+    { label: "Being outside",      img: "need-08" },
   ];
 
   const SAY = {
@@ -417,7 +426,7 @@
     result:    "That one is yours now. If it doesn't feel right, you can always spin again — you choose.",
     question:  "There's nothing to write down. Say it out loud, or just think it. I'm listening either way.",
     flash:     "Some children would say yes, some would say no. Both are right — that's the whole secret.",
-    situation: "If your feeling fits this moment, give it to me. I don't have a face until you do.",
+    situation: "Here are three moments. Drag your feeling onto the one that fits — I don't have a face until you do.",
     needs:     "Every feeling is pointing at something you need. It's okay if others need the same thing.",
     close:     "Thank you for teaching me. Shall we go around once more?",
   };
@@ -432,6 +441,7 @@
   const panels = {};
   $$(".panel").forEach((p) => (panels[p.dataset.step] = p));
   const say = $("#say");
+  const topbar = $("#topbar");
   const stepDots = $$("#steps li");
 
   let chosen = null; // chosen emotion for the round
@@ -440,10 +450,13 @@
     Object.values(panels).forEach((p) => p.classList.remove("active"));
     panels[step].classList.add("active");
     say.textContent = SAY[step] || "";
+    topbar.style.display = step === "intro" ? "none" : "flex";
     const idx = STEP_INDEX[step];
     stepDots.forEach((d, i) => {
-      d.classList.toggle("now", i === idx);
-      d.classList.toggle("done", idx != null && i < idx);
+      const isNow = i === idx;
+      const isDone = step === "close" ? true : (idx != null && i < idx);
+      d.classList.toggle("now", isNow);
+      d.classList.toggle("done", isDone && !isNow);
     });
     if (step === "spin") resetSpin();
     if (step === "question") setupQuestion();
@@ -454,6 +467,18 @@
 
   // generic [data-go] wiring
   $$("[data-go]").forEach((b) => b.addEventListener("click", () => go(b.dataset.go)));
+  $("#startOver").addEventListener("click", () => go("intro"));
+
+  // clickable step dots — jump straight to that step
+  const STEP_ORDER = ["spin", "question", "flash", "situation", "needs"];
+  stepDots.forEach((d, i) => {
+    d.setAttribute("role", "button");
+    d.setAttribute("tabindex", "0");
+    d.setAttribute("aria-label", `Go to step ${i + 1}: ${STEP_ORDER[i]}`);
+    const jump = () => go(STEP_ORDER[i]);
+    d.addEventListener("click", jump);
+    d.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); jump(); } });
+  });
 
   // ---------------- WHEEL ----------------
   const SEG = 30, R = 150, R_DISC = 104, RD = 30;
@@ -569,38 +594,92 @@
   );
 
   // ---------------- SITUATION ----------------
+  const sitCards = $("#sitCards");
+  const tok = $("#sitToken");
+  let sitPlaced = false, dragging = false, ghost = null;
+
+  function shuffle(a) {
+    a = a.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+
   function setupSituation() {
-    const s = rand(SITUATIONS);
-    $("#sitTitle").textContent = s.title;
-    $("#sitImg").src = `assets/situations/${s.img}.png`;
-    const slot = $("#faceSlot");
-    slot.classList.remove("filled");
-    slot.style.left = s.fx * 100 + "%";
-    slot.style.top = s.fy * 100 + "%";
-    slot.style.width = s.fd * 100 + "%";
-    slot.style.aspectRatio = "1";
-    $("#faceHead").src = headSrc(chosen.head);
-    const tok = $("#sitToken");
+    if (!chosen) chosen = rand(EMOTIONS); // e.g. jumped here via a step dot
+    sitPlaced = false;
+    const picks = shuffle(SITUATIONS).slice(0, 3);
+    sitCards.innerHTML = picks.map((s) => `
+      <figure class="sit-card card" data-img="${s.img}">
+        <div class="sit-img-hold">
+          <img class="scene" src="assets/situations/${s.img}.png" alt="An everyday moment; Yubuu has no face yet" />
+          <div class="face-slot" style="left:${s.fx * 100}%;top:${s.fy * 100}%;width:${s.fd * 100}%;aspect-ratio:1">
+            <div class="ring"></div><img class="faceHead" src="${headSrc(chosen.head)}" alt="" />
+          </div>
+        </div>
+        <figcaption>${s.title}</figcaption>
+      </figure>`).join("");
     tok.src = headSrc(chosen.head);
+    tok.style.opacity = "";
     $("#placeRow").style.display = "";
     $("#sNext").disabled = true;
+    // click-to-place fallback (keyboard / no-drag)
+    $$(".sit-card", sitCards).forEach((c) => c.addEventListener("click", () => { if (!sitPlaced) placeOnCard(c); }));
   }
-  function placeFace() {
-    const slot = $("#faceSlot");
-    if (slot.classList.contains("filled")) return;
-    slot.classList.add("filled");
+
+  function placeOnCard(card) {
+    if (sitPlaced) return;
+    sitPlaced = true;
+    card.querySelector(".face-slot").classList.add("filled");
+    $$(".sit-card .ring", sitCards).forEach((r) => (r.style.display = "none"));
     $("#placeRow").style.display = "none";
-    say.textContent = "Now I feel it too. Another child might give me a different face — and that would fit just as well.";
+    say.textContent = "Now I feel it too. Another child might choose a different moment — and that would fit just as well.";
     $("#sNext").disabled = false;
   }
-  $("#sitToken").addEventListener("click", placeFace);
+
+  const cardUnder = (x, y) => { const el = document.elementFromPoint(x, y); return el ? el.closest(".sit-card") : null; };
+
+  tok.addEventListener("pointerdown", (e) => {
+    if (sitPlaced) return;
+    e.preventDefault();
+    dragging = true;
+    tok.setPointerCapture(e.pointerId);
+    const r = tok.getBoundingClientRect();
+    ghost = tok.cloneNode(true);
+    ghost.removeAttribute("id");
+    Object.assign(ghost.style, {
+      position: "fixed", width: r.width + "px", height: r.height + "px",
+      left: (e.clientX - r.width / 2) + "px", top: (e.clientY - r.height / 2) + "px",
+      pointerEvents: "none", zIndex: "9999", opacity: "0.97", transform: "scale(1.12)",
+      margin: "0", animation: "none",
+    });
+    document.body.appendChild(ghost);
+    tok.style.opacity = "0.3";
+  });
+  tok.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + "px";
+    ghost.style.top = (e.clientY - ghost.offsetHeight / 2) + "px";
+    const card = cardUnder(e.clientX, e.clientY);
+    $$(".sit-card", sitCards).forEach((c) => c.classList.toggle("drop-hover", c === card));
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    const card = cardUnder(e.clientX, e.clientY);
+    $$(".sit-card", sitCards).forEach((c) => c.classList.remove("drop-hover"));
+    if (ghost) { ghost.remove(); ghost = null; }
+    if (card) placeOnCard(card);
+    else tok.style.opacity = "";
+  }
+  tok.addEventListener("pointerup", endDrag);
+  tok.addEventListener("pointercancel", endDrag);
 
   // ---------------- NEEDS ----------------
   const needsGrid = $("#needsGrid");
   function setupNeeds() {
     needsGrid.classList.remove("chosen");
     needsGrid.innerHTML = NEEDS.map((n, i) =>
-      `<button class="need" data-i="${i}"><img src="assets/needs/need-${String(i + 1).padStart(2, "0")}.png" alt=""><span>${n}</span></button>`
+      `<button class="need" data-i="${i}"><img src="assets/needs/${n.img}.png" alt=""><span>${n.label}</span></button>`
     ).join("");
     $("#nNext").disabled = true;
     $$(".need", needsGrid).forEach((b) =>
@@ -608,7 +687,7 @@
         $$(".need", needsGrid).forEach((x) => x.classList.remove("sel"));
         b.classList.add("sel");
         needsGrid.classList.add("chosen");
-        say.textContent = `"${NEEDS[b.dataset.i]}" — that's a good thing to know about yourself.`;
+        say.textContent = `"${NEEDS[b.dataset.i].label}" — that's a good thing to know about yourself.`;
         $("#nNext").disabled = false;
       })
     );
